@@ -20,6 +20,7 @@ def signup(request):
 
 		if User.objects.filter(username=username).count():
 			print 'User already exists'
+			return HttpResponse("User already exists")
 		else:
 			first_name = request.POST['first_name']
 			last_name = request.POST['last_name']
@@ -32,7 +33,8 @@ def signup(request):
 			user.save()
 
 
-	return render_to_response("myapp/main.html")
+	#return render_to_response("myapp/main.html")
+	return HttpResponse("User created!")
 	#user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 	#return render(request, 'polls/index.html')
 
