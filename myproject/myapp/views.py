@@ -6,12 +6,24 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
+from django.contrib.auth import authenticate
 
 
 
 def index(request):
 	print 'Heyjkfdlsajfks'
 	return HttpResponse("Hello, world. You're at the polls index.")
+
+def login(request):
+	if request.method == "POST":
+		username = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username = username, password = password)
+		if (user is not None):
+			return HttpResponse("User logged in!")
+		else:
+			return HttpResponse("Login failed")
+
 
 def signup(request):
 	#return HttpResponse("And this is the signup page!")
@@ -20,7 +32,7 @@ def signup(request):
 
 		if User.objects.filter(username=username).count():
 			print 'User already exists'
-			return HttpResponse("User already exists")
+			return HttpResponse("User already exists.")
 		else:
 			first_name = request.POST['first_name']
 			last_name = request.POST['last_name']
