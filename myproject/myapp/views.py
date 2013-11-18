@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate
+from models import Document
 
 
 
@@ -20,9 +21,10 @@ def login(request):
 		password = request.POST['password']
 		user = authenticate(username = username, password = password)
 		if (user is not None):
-			return HttpResponse("User logged in!")
+			return HttpResponse("User logged in!", status = 200)
 		else:
-			return HttpResponse("Login failed")
+			print ("Login failed")
+			return HttpResponse("Login failed", status = 404)
 
 
 def signup(request):
@@ -46,20 +48,52 @@ def signup(request):
 
 
 	#return render_to_response("myapp/main.html")
-	return HttpResponse("User created!")
+		return HttpResponse("User created!")
 	#user = User.objects.create_user('john', 'lennon@thebeatles.com', 'johnpassword')
 	#return render(request, 'polls/index.html')
 
+def check_password(request):
+	if request.method == "POST":
+		username = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username = username, password = password)
+		if user is not None:
+			return HttpResponse("true")
+		else:
+			return HttpResponse("false")
 
-# def lexusadduser(request):
-#     if request.method == "POST":
-#         form = UserForm(request.POST)
-#         if form.is_valid():
-#             new_user = User.objects.create_user(**form.cleaned_data)
-#             login(new_user)
-#             # redirect, or however you want to get to the main view
-#             return HttpResponseRedirect('main.html')
-#     else:
-#         form = UserForm() 
+def change_password(request):
+	if request.method == "POST":
+		username = request.POST['username']
+		password = request.POST['new_password']
+		u = User.objects.get(username__exact=username)
+		u.set_password(password)
+		u.save()
+		return HttpResponse("Password changed!")
 
-#     return render(request, 'adduser.html', {'form': form}) # Create your views here.
+def printAllDocsByUser(user=None):
+	print str(user)
+	docs = Document.objects.filter(user=user)
+	print docs
+
+def upload(request):
+    # Handle file upload
+    if request.method == 'POST':
+    	if request.user.is_authenticated:
+    		user = User.objects.get(username__exact='joe')
+    		print str(user)
+	    	# try:
+	    	newdoc = Document(user = user, docfile = request.FILES['docfile'])
+	    	newdoc.save()
+
+	    	print("File uploaded?")
+	    	print str(newdoc)
+	    	printAllDocsByUser(user)
+	    	return HttpResponse("File uploaded")
+	        # except Exception, e:
+	        	# print(str(e))
+	        	# return HttpResponse("Error occurred.")
+    else:
+        return HttpResponse("Hit /upload with no post request")
+
+    
