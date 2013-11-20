@@ -81,18 +81,21 @@ def upload(request):
     if request.method == 'POST':
     	if request.user.is_authenticated:
     		user = User.objects.get(username__exact='joe')
-    		print str(user)
+    		docsByThisUser = Document.objects.filter(user=user)
 	    	# try:
 	    	newdoc = Document(user = user, docfile = request.FILES['docfile'])
-	    	newdoc.save()
+	    	for f in docsByThisUser:
+	    		print f.filename()
+	    	
+	    	postFilename = str(request.FILES['docfile'].name)
 
-	    	print("File uploaded?")
-	    	print str(newdoc)
-	    	printAllDocsByUser(user)
+	    	#newdoc.save()
+	    	print("FileUploaded: " + postFilename)
+	    	# printAllDocsByUser(user)
 	    	return HttpResponse("File uploaded")
-	        # except Exception, e:
-	        	# print(str(e))
-	        	# return HttpResponse("Error occurred.")
+
+
+
     else:
         return HttpResponse("Hit /upload with no post request")
 
