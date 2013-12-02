@@ -98,8 +98,13 @@ def signup_prompt():
 		req = urllib2.Request(SIGNUP_URL, data)
 		response = urllib2.urlopen(req)
 		the_page = response.read()
-		print the_page
-	else: 
+		if the_page == "User created!":
+			print the_page
+			onedir_menu.setUp(username,password)
+			return
+		else:
+			print "Username already exists"
+	else:
 		signup_prompt()
 		return
 

@@ -14,14 +14,14 @@ from login_script import loginOrSignup
 
 
 UPLOAD_URL = "http://127.0.0.1:8000/myapp/upload/"
-GET_FILES_URL = "http://127.0.0.1:8000/myapp/get_files/"
+GET_FILES_URL = "http://127.0.0.1:8000/myapp/get_list_files/"
 CHECK_PASSWORD_URL = "http://127.0.0.1:8000/myapp/check_password/"
 CHANGE_PASSWORD_URL = "http://127.0.0.1:8000/myapp/change_password/"
 
 USERNAME = "empty"
 PASSWORD = "empty"
 ROOT = ""
-SYNC = True
+SYNC = False
 OBSERVER = None
 
 
@@ -32,16 +32,15 @@ def welcome():
 	main_menu2()
 
 def main_menu2():
+	
 	while (True):
 		printFiles()
-		
-
-
 		input = raw_input("\nMain Menu:Please make a selection: \n\t" \
 		"[1] Toggle Sync - Currently ["+getSyncStatus()+"] \n\t" \
 		"[2] Refresh\n\t" \
 		"[3] Change Password\n\t" \
-		"[4] Sign out\n")
+		"[4] Sign out\n\t"\
+		"[5] Pull Files")
 
 		try:
 			selection = int(input)
@@ -51,25 +50,32 @@ def main_menu2():
 				except Exception, e:
 					print "toggleSync() exception"
 					print e
-			if selection == 2:
+			elif selection == 2:
 				try:
 					print "Action not available yet"
 				except Exception, e:
 					print "refresh() exception"
 					print e
-			if selection == 3:
+			elif selection == 3:
 				try:
 					change_password()
 				except Exception,e :
 					print "change_passwords exception"
 					print e
-			if selection == 4:
+			elif selection == 4:
 				try:
 					break
 				except Exception, e:
 					print "sync() exception"
 					print e
-
+			elif selection == 5:
+				try:
+					print "Action not available yet"
+				except Exception, e:
+					print "pullFiles() exception"
+					print e
+			else:
+				print "Invalid input. Try again"
 		except Exception, e:
 			print "Invalid Input. Try again."
 
@@ -100,7 +106,7 @@ def toggleSync():
 		turnOffWatchdog(OBSERVER)
 
 def sync():
-	print 
+	
 	rootfolder = ROOT
 	contents = []
 
@@ -108,20 +114,23 @@ def sync():
 		if x.startswith('.'):
 			continue
 		if isfile(join(rootfolder,x)):
+			print 
 			contents.append(x)
 		elif isdir(join(rootfolder,x)):
 			print "Folder: " + x
 			folder_recurse(contents,join(rootfolder,x))
 
-	for f in contents:
-		print time.ctime(os.path.getmtime(f))
-
 	fileMap = {}
+	timestampMap = {}
 	for f in contents:
-		fileMap[str(f)] = codecs.open(f,'r')
+		actualFile = codecs.open(f,'r')
+		timestamp = str(os.path.getmtime(join(rootfolder,f)))
+		
+		fileMap[str(f)] = actualFile
+		timestampMap[str(f)] = timestamp
 
-	response = requests.post(UPLOAD_URL, files=fileMap)
-	print str(response)
+	response = requests.post(UPLOAD_URL, files=fileMap, data=timestampMap)
+	
 
 
 def folder_recurse(contents, folderpath):
@@ -181,19 +190,24 @@ class MyHandler(FileSystemEventHandler):
     def on_created(self, event):
         if isHiddenFile(event):
         	return
+        if event.src_path == ROOT:
+        	sync();
         print "Created" + event.src_path
     def on_deleted(self, event):
         if isHiddenFile(event):
         	return
-        print "Del" +event.src_path
+        if event.src_path == ROOT:
+        	sync();
     def on_modified(self, event):
     	if isHiddenFile(event):
         	return
-        print "Mod" + event.src_path
+        if event.src_path == ROOT:
+        	sync();
     def on_moved(self, event):
         if isHiddenFile(event):
         	return
-        print "Move" + event.src_path
+        if event.src_path == ROOT:
+        	sync();
 
 
 def isHiddenFile(event):
@@ -224,8 +238,8 @@ def setUp(username,password):
 	USERNAME = username
 	PASSWORD = password
 	ROOT =  os.path.dirname(os.path.realpath(__file__))
-	SYNC = True
-	sync()
-	turnOnWatchdog()
+	SYNC = False
+	#sync()
+	#turnOnWatchdog()
 	#present user with options
 	welcome()

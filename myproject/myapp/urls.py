@@ -10,5 +10,5 @@ urlpatterns = patterns('',
     url(r'^change_password/$', views.change_password, name='change_password'),
     url(r'^upload/$', views.upload, name='upload'),
     url(r'^temp/$',views.temp, name='temp'),
-    url(r'^get_files/$',views.get_files, name='get_files')
+    url(r'^get_list_files/$',views.get_files, name='get_list_files')
 )

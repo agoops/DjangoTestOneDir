@@ -99,21 +99,27 @@ def upload(request):
 	    		fileFound=False
 	    		for xx in qs: 
 	    			fileNameOnSystem = str(xx.docfile.name)
-	    			
+	    			print whatFilenameWouldBe
+	    			print fileNameOnSystem
 	    			if fileNameOnSystem == whatFilenameWouldBe:
 	    				print "File exists"
 	    				xx.docfile.delete()
 	    				xx.delete()
 	    				qs_list.remove(xx)
-	    				print (xx in qs_list)
-	    				newdoc=Document(user=user, localpath=k,docfile=request.FILES[k])
+	    				actualFile=request.FILES[k]
+	    				timestamp = int(float(request.POST.get(k)))
+	    				print timestamp
+
+
+	    				newdoc=Document(user=user, timestamp=timestamp,localpath=k,docfile=actualFile)
 	    				newdoc.save()
 	    				fileFound=True
 	    		
 
 	    		if fileFound==False:
 	    			print "New file"
-	    			newdoc = Document(user=user, localpath=k, docfile=request.FILES[k])
+	    			timestamp=int(float(request.POST.get(k)))
+	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
 	    			newdoc.save()
 
 
