@@ -170,11 +170,11 @@ def change_password():
 		req = urllib2.Request(CHANGE_PASSWORD_URL, data)
 		response = urllib2.urlopen(req)
 		the_page = response.read()
-		print the_page
+		print str(response) + the_page
 		main_menu2()
 
 def signOut():
-	loginOrSignup()
+	loginOrSignUp
 
 
 class MyHandler(FileSystemEventHandler):

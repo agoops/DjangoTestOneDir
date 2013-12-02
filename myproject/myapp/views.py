@@ -10,7 +10,12 @@ from django.contrib.auth import authenticate
 from models import Document
 
 
+def temp(request):
+	print "temp entered"
+	print request
+	return HttpResponse("Hello from django")
 
+	
 def index(request):
 	print 'Heyjkfdlsajfks'
 	return HttpResponse("Hello, world. You're at the polls index.")
@@ -80,23 +85,80 @@ def upload(request):
     # Handle file upload
     if request.method == 'POST':
     	if request.user.is_authenticated:
-    		user = User.objects.get(username__exact='joe')
-    		docsByThisUser = Document.objects.filter(user=user)
-	    	# try:
-	    	newdoc = Document(user = user, docfile = request.FILES['docfile'])
-	    	for f in docsByThisUser:
-	    		print f.filename()
+    		print request.user.username
+    		user = User.objects.get(username__exact='ankitgupta')
 	    	
-	    	postFilename = str(request.FILES['docfile'].name)
+	    	qs = Document.objects.filter(user=user)
+	    	qs_list = list(qs)
+	    	print "Keys in this post"
+	    	for k in request.FILES:
 
-	    	#newdoc.save()
-	    	print("FileUploaded: " + postFilename)
+	    		print k 
+	    		whatFilenameWouldBe = str(user)+'/'+k
+
+	    		fileFound=False
+	    		for xx in qs: 
+	    			fileNameOnSystem = str(xx.docfile.name)
+	    			
+	    			if fileNameOnSystem == whatFilenameWouldBe:
+	    				print "File exists"
+	    				xx.docfile.delete()
+	    				xx.delete()
+	    				qs_list.remove(xx)
+	    				print (xx in qs_list)
+	    				newdoc=Document(user=user, localpath=k,docfile=request.FILES[k])
+	    				newdoc.save()
+	    				fileFound=True
+	    		
+
+	    		if fileFound==False:
+	    			print "New file"
+	    			newdoc = Document(user=user, localpath=k, docfile=request.FILES[k])
+	    			newdoc.save()
+
+
+    		for element in qs_list:
+    			element.docfile.delete()
+    			element.delete()
+    			print "deleted" + str(element)
+
+
+
+    		docsByThisUser = Document.objects.filter(user=user)
+
+	    	print "\nDocs by this user"
+	    	for f in docsByThisUser:
+	    		print f.docfile.name
+	    		# f.docfile.delete()
+	    		# f.delete()
+	    	print "---"
+
+	    	# for f in docsByThisUser:
+	    	# 	print f.filename
+	    	
+	    	# str(request.FILES['docfile'].name)
+
+	    	# newdoc.save()
+	    	# print("FileUploaded: " + postFilename)
 	    	# printAllDocsByUser(user)
-	    	return HttpResponse("File uploaded")
+	    	return HttpResponse("Files uploaded")
 
 
 
     else:
         return HttpResponse("Hit /upload with no post request")
+
+def get_files(request):
+	user = User.objects.get(username__exact="ankitgupta")
+	print "---"
+	print str(request.user.username)
+	print "---"
+	qs = Document.objects.filter(user=user)
+	listOfFiles = []
+	for f in qs:
+		listOfFiles.append(str(f.filename))
+
+	data={"files":listOfFiles}
+	return HttpResponse(str(data))
 
     
