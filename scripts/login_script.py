@@ -124,7 +124,7 @@ def signup_prompt():
 def main(argv):
 	global BASE_URL, LOGIN_URL, SIGNUP_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL
 	if(len(sys.argv) == 2):
-		ip = argv[1]
+		ip = sys.argv[1]
 		url = "http://"+ip+"/"
 	else:
 		url = "http://127.0.0.1:8000/"
