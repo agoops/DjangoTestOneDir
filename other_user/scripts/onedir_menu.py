@@ -267,9 +267,7 @@ class MyHandler(FileSystemEventHandler):
 	def tempMethod(self):
 		print "Myhandler temp method called"
 
-	def on_any_event(event):
-		print "any event" + event.src_path
-		
+
 	def on_created(self, event):
 		print 'created watchdog' + event.src_path
 		global deleteThread
