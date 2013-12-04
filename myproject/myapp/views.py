@@ -52,7 +52,9 @@ def checkForUpdates(request):
 		serverIdMap[doc.filename]= doc.id
 
 	filesToDelete=[]
-	filesToUpdate=[]	
+	filesToUpdate=[]
+	print 'filesToUpdate' +str(filesToUpdate)
+
 
 
 
