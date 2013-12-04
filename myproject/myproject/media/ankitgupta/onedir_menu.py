@@ -104,6 +104,7 @@ def refreshFiles():
 		pullFile(i)
 
 def pullFile(fileId):
+	print 'got here in pullFile'
 	data = {'fileId': fileId}
 	response = requests.post(PULL_FILE_URL, data=data)
 	print response.headers.keys()
@@ -200,7 +201,11 @@ def sync():
 		fileMap[str(f)] = actualFile
 		timestampMap[str(f)] = timestamp
 
-	response = requests.post(UPLOAD_URL, files=fileMap, data=timestampMap)
+	data = {}
+	data['username'] = USERNAME
+	data['password'] = PASSWORD
+	data['timestampMap'] = str(timestampMap)
+	response = requests.post(UPLOAD_URL, files=fileMap, data=data)
 	
 
 

@@ -20,6 +20,7 @@ def temp(request):
 def checkForUpdates(request):
 	username = request.POST['username']
 	password = request.POST['password']
+	
 	user = authenticate(username=username,password=password)
 
 	timestampMap = ast.literal_eval(request.POST['timestampMap'])
@@ -151,9 +152,12 @@ def upload(request):
     # Handle file upload
     if request.method == 'POST':
     	if request.user.is_authenticated:
-    		print request.user.username
-    		user = User.objects.get(username__exact='ankitgupta')
-	    	
+
+    		username = request.POST['username']
+    		password = request.POST['password']
+    		user = authenticate(username=username,password=password)
+	    	timestampMap = ast.literal_eval(request.POST['timestampMap'])
+
 	    	qs = Document.objects.filter(user=user)
 	    	qs_list = list(qs)
 	    	print "Keys in this post"
@@ -173,7 +177,7 @@ def upload(request):
 	    				xx.delete()
 	    				qs_list.remove(xx)
 	    				actualFile=request.FILES[k]
-	    				timestamp = int(float(request.POST.get(k)))
+	    				timestamp = int(float(timestampMap.get(k)))
 	    				print timestamp
 
 
@@ -184,7 +188,7 @@ def upload(request):
 
 	    		if fileFound==False:
 	    			print "New file"
-	    			timestamp=int(float(request.POST.get(k)))
+	    			timestamp=int(float(timestampMap.get(k)))
 	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
 	    			newdoc.save()
 
