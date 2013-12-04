@@ -161,8 +161,8 @@ def toggleSync():
 		backgroundThread = Thread(target=backgroundPoller)
 		backgroundThread.start()
 	else:
-		backgroundThread.join()
-		backgroundThread.stop
+		if backgroundThread.isAlive():
+			backgroundThread.join()
 		turnOffWatchdog(OBSERVER)
 
 def sync():
@@ -191,7 +191,6 @@ def sync():
 	data['username'] = USERNAME
 	data['password'] = PASSWORD
 	data['timestampMap'] = str(timestampMap)
-
 	response = requests.post(UPLOAD_URL, files=fileMap, data=data)
 	refreshFiles()
 
@@ -322,7 +321,7 @@ def turnOffWatchdog(observer):
 
 
 def setUp(username,password, url):
-	global USERNAME, PASSWORD, ROOT, SYNC, PULL_FILE_URL, BASE_URL, UPLOAD_URL, GET_FILES_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL, DELETE_URL
+	global USERNAME, PASSWORD, ROOT, SYNC, PULL_FILE_URL, BASE_URL, UPLOAD_URL, GET_FILES_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL, DELETE_URL, CHECK_FOR_UPDATES_URL
 	USERNAME = username
 	PASSWORD = password
 	BASE_URL = url

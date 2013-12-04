@@ -38,7 +38,7 @@ def checkForUpdates(request):
 	timestampMap = ast.literal_eval(request.POST['timestampMap'])
 	
 	filesByThisUser = Document.objects.filter(user=user)
-	logger.debug(username + " synched")
+	logger.info(username + " synced")
 	# converting timestamps to ints
 	for k in timestampMap:
 		timestampMap[k]=int(float(timestampMap[k]))
@@ -94,7 +94,7 @@ def pull_file(request):
 def send_file(path, filename = None, mimetype = None, timestamp=100):
 
 	if mimetype is None:
-	    mimetype, encoding = mimetypes.guess_type(filename)
+		mimetype, encoding = mimetypes.guess_type(filename)
 
 	response = HttpResponse(mimetype=mimetype)
 	response['Content-Disposition'] = 'attachment; filename=%s' %filename
@@ -110,10 +110,10 @@ def login(request):
 		password = request.POST['password']
 		user = authenticate(username = username, password = password)
 		if (user is not None):
-			logger.debug(username + " logged in")
+			logger.info(username + " logged in")
 			return HttpResponse("User logged in!", status = 200)
 		else:
-			logger.debug("Attempted login by " + username)
+			logger.info("Attempted login by " + username)
 			return HttpResponse("Login failed", status = 404)
 
 
@@ -133,7 +133,7 @@ def signup(request):
 			user.last_name = last_name
 			user.first_name = first_name
 			user.save()
-			logger.debug(username + "Signed up")
+			logger.info(username + "Signed up")
 
 		return HttpResponse("User created!")
 
@@ -154,62 +154,61 @@ def change_password(request):
 		u = User.objects.get(username__exact=username)
 		u.set_password(password)
 		u.save()
-		logger.debug(username + "password changed")
+		logger.info(username + "password changed")
 		return HttpResponse("Password changed!")
 
 def printAllDocsByUser(user=None):
 	docs = Document.objects.filter(user=user)
 
 def upload(request):
-    # Handle file upload
-    if request.method == 'POST':
-    	if request.user.is_authenticated:
+	# Handle file upload
+	if request.method == 'POST':
 
-    		username = request.POST['username']
-    		password = request.POST['password']
-    		user = authenticate(username=username,password=password)
-	    	timestampMap = ast.literal_eval(request.POST['timestampMap'])
+		username = request.POST['username']
+		password = request.POST['password']
+		user = authenticate(username=username,password=password)
+    	timestampMap = ast.literal_eval(request.POST['timestampMap'])
 
-	    	qs = Document.objects.filter(user=user)
-	    	qs_list = list(qs)
-	    	for k in request.FILES:
+    	qs = Document.objects.filter(user=user)
+    	qs_list = list(qs)
+    	for k in request.FILES:
 
-	    		whatFilenameWouldBe = str(user)+'/'+k
+    		whatFilenameWouldBe = str(user)+'/'+k
 
-	    		fileFound=False
-	    		for xx in qs: 
-	    			fileNameOnSystem = str(xx.docfile.name)
-	    			if fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) == xx.timestamp:
-	    				# File exists, and does not need to be updated
-	    				# Remove from query set so it does not get deleted
-	    				qs_list.remove(xx)
-	    				fileFound = True
-	    				break
-	    			elif fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) > xx.timestamp:
-	    				xx.docfile.delete()
-	    				xx.delete()
-	    				qs_list.remove(xx)
-	    				actualFile=request.FILES[k]
-	    				timestamp = int(float(timestampMap.get(k)))
-
-
-	    				newdoc=Document(user=user, timestamp=timestamp,localpath=k,docfile=actualFile)
-	    				newdoc.save()
-	    				fileFound=True
-	    				break
-	    			
-
-	    		if fileFound==False:
-	    			timestamp=int(float(timestampMap.get(k)))
-	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
-	    			newdoc.save()
-	    	logger.debug(username + "uploaded files")
-	    	return HttpResponse("Files uploaded")
+    		fileFound=False
+    		for xx in qs: 
+    			fileNameOnSystem = str(xx.docfile.name)
+    			if fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) == xx.timestamp:
+    				# File exists, and does not need to be updated
+    				# Remove from query set so it does not get deleted
+    				qs_list.remove(xx)
+    				fileFound = True
+    				break
+    			elif fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) > xx.timestamp:
+    				xx.docfile.delete()
+    				xx.delete()
+    				qs_list.remove(xx)
+    				actualFile=request.FILES[k]
+    				timestamp = int(float(timestampMap.get(k)))
 
 
+    				newdoc=Document(user=user, timestamp=timestamp,localpath=k,docfile=actualFile)
+    				newdoc.save()
+    				fileFound=True
+    				break
+    			
 
-    else:
-        return HttpResponse("Hit /upload with no post request")
+    		if fileFound==False:
+    			timestamp=int(float(timestampMap.get(k)))
+    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
+    			newdoc.save()
+    	logger.info(username + " uploaded files")
+    	return HttpResponse("Files uploaded")
+
+
+
+	# else:
+ #    	return HttpResponse("Hit /upload with no post request")
 
 def get_list_files(request):
 	username = request.POST['username']

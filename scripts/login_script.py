@@ -109,7 +109,7 @@ def signup_prompt():
 		the_page = response.read()
 		if the_page == "User created!":
 			print the_page
-			onedir_menu.setUp(username,password)
+			onedir_menu.setUp(username,password,BASE_URL)
 			return
 		else:
 			print "Username already exists"
@@ -121,14 +121,15 @@ def signup_prompt():
 def main(argv):
 	global BASE_URL, LOGIN_URL, SIGNUP_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL
 	if(len(sys.argv) == 2):
-		url = argv[1]
+		ip = argv[1]
+		url = "http://"+ip+"/"
 	else:
 		url = "http://127.0.0.1:8000/"
 	BASE_URL = url
-	LOGIN_URL = BASE_URL + "admin/login/"
+	LOGIN_URL = BASE_URL + "myapp/login/"
 	SIGNUP_URL = BASE_URL + "myapp/signup/"
 	CHECK_PASSWORD_URL = BASE_URL + "myapp/check_password/"
-	CHANGE_PASSWORD_URL = BASE_URL + "myapp/change_password/s"
+	CHANGE_PASSWORD_URL = BASE_URL + "myapp/change_password/"
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
