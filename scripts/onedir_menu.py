@@ -79,7 +79,9 @@ def main_menu2():
 
 def refreshFiles():
 	
-
+	global deleteThread
+	while deleteThread.isAlive():
+		x = 5
 	timestampMap = getAllFilenamesTimestamps()
 	mappingToSend = {}
 	mappingToSend['username'] = USERNAME
@@ -195,7 +197,9 @@ def sync():
 	refreshFiles()
 
 def backgroundPoller():
+	global deleteThread
 	while SYNC:
+		while deleteThread.isAlive()
 		time.sleep(4)
 		refreshFiles()
 
@@ -258,6 +262,7 @@ def signOut():
 	loginOrSignup()
 
 def deleteFile(filepath):
+	print 'deleteFile reached'
 	data = {'username':USERNAME, 'password':PASSWORD, 'filepath': filepath}
 	response = requests.post(DELETE_URL, data=data)
 
@@ -266,6 +271,7 @@ class MyHandler(FileSystemEventHandler):
 
 
 	def on_created(self, event):
+		print event
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
@@ -275,6 +281,7 @@ class MyHandler(FileSystemEventHandler):
 		sync()
 
 	def on_deleted(self, event):
+		print event
 		global deleteThread
 		if "~" in event.src_path:
 			return
@@ -288,6 +295,7 @@ class MyHandler(FileSystemEventHandler):
 		deleteThread.start()
         
 	def on_modified(self, event):
+		print event
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
@@ -297,6 +305,7 @@ class MyHandler(FileSystemEventHandler):
 		
 		sync()
 	def on_moved(self, event):
+		print event
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
