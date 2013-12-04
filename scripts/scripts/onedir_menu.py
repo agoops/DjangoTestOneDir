@@ -171,7 +171,7 @@ def sync():
 	contents = []
 
 	for x in listdir(rootfolder):
-		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc") or x.enswith("~"):
+		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc") or x.endswith("~"):
 			continue
 		if isfile(join(rootfolder,x)):
 			contents.append(x)
