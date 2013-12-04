@@ -70,7 +70,7 @@ def main_menu2():
 
 		signOut()
 
-	except KeyboardInterrupt ke: 
+	except KeyboardInterrupt, ke:
 		if backgroundThread.isAlive():
 			backgroundThread.stop()
 
