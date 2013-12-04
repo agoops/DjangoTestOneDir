@@ -25,6 +25,7 @@ def deleteFile(request):
 
 	filename = request.POST['filepath']
 	whatFilenameWouldBe = str(user) + '/' + filename
+	print filename
 	doc = Document.objects.get(user=user, localpath=filename)
 	doc.docfile.delete()
 	doc.delete()
