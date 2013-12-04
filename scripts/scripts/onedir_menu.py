@@ -12,20 +12,21 @@ from watchdog.events import FileSystemEventHandler
 import ast
 from login_script import loginOrSignup
 
-
-UPLOAD_URL = "http://127.0.0.1:8000/myapp/upload/"
-GET_FILES_URL = "http://127.0.0.1:8000/myapp/get_list_files/"
-CHECK_PASSWORD_URL = "http://127.0.0.1:8000/myapp/check_password/"
-CHANGE_PASSWORD_URL = "http://127.0.0.1:8000/myapp/change_password/"
-CHECK_FOR_UPDATES_URL = "http://127.0.0.1:8000/myapp/checkForUpdates/"
-PULL_FILE_URL = "http://127.0.0.1:8000/myapp/pull_file/"
-DELETE_URL = "http://127.0.0.1:8000/myapp/deleteFile/"
+BASE_URL = ""
+UPLOAD_URL = ""
+GET_FILES_URL = ""
+CHECK_PASSWORD_URL = ""
+CHANGE_PASSWORD_URL = ""
+CHECK_FOR_UPDATES_URL = ""
+PULL_FILE_URL = ""
+DELETE_URL = ""
 USERNAME = "empty"
 PASSWORD = "empty"
 ROOT = ""
 SYNC = False
 OBSERVER = None
 deleteThread = Thread()
+backgroundThread = Thread()
 
 
 def welcome():
@@ -35,55 +36,46 @@ def welcome():
 	main_menu2()
 
 def main_menu2():
-	
-	while (True):
-		printFiles()
-		input = raw_input("\nMain Menu:Please make a selection: \n\t" \
-		"[1] Toggle Sync - Currently ["+getSyncStatus()+"] \n\t" \
-		"[2] Refresh\n\t" \
-		"[3] Change Password\n\t" \
-		"[4] Sign out\n\t"\
-		"[5] Pull Files")
+	try:
+		while (True):
+			printFiles()
+			input = raw_input("\nMain Menu:Please make a selection: \n\t" \
+			"[1] Toggle Sync - Currently ["+getSyncStatus()+"] \n\t" \
+			"[2] Change Password\n\t" \
+			"[3] Sign out\n\t")
 
-		try:
-			selection = int(input)
-			if selection == 1:
-				try:
-					toggleSync()
-				except Exception, e:
-					print "toggleSync() exception"
-					print e
-			elif selection == 2:
-				try:
-					print refreshFiles()
-				except Exception, e:
-					print "refresh() exception"
-					print e
-			elif selection == 3:
-				try:
-					change_password()
-				except Exception,e :
-					print "change_passwords exception"
-					print e
-			elif selection == 4:
-				try:
-					break
-				except Exception, e:
-					print "sync() exception"
-					print e
-			elif selection == 5:
-				try:
-					print "Action not available yet"
-				except Exception, e:
-					print "pullFiles() exception"
-					print e
-			else:
-				print "Invalid input. Try again"
-		except Exception, e:
-			print "Invalid Input. Try again."
+			try:
+				selection = int(input)
+				if selection == 1:
+					try:
+						toggleSync()
+					except Exception, e:
+						print "toggleSync() exception"
+						print e
+				elif selection == 2:
+					try:
+						change_password()
+					except Exception,e :
+						print "change_passwords exception"
+						print e
+				elif selection == 3:
+					try:
+						break
+					except Exception, e:
+						print e
+				else:
+					print "Invalid input. Try again"
+			except Exception, e:
+				print "Invalid Input. Try again."
 
-	signOut()
+		signOut()
 
+	except KeyboardInterrupt, ke: 
+
+		global SYNC
+		SYNC = False
+		if backgroundThread.isAlive():
+			backgroundThread.join()
 
 def refreshFiles():
 	
@@ -93,14 +85,11 @@ def refreshFiles():
 	mappingToSend['username'] = USERNAME
 	mappingToSend['password'] = PASSWORD
 	mappingToSend['timestampMap'] = str(timestampMap)
-	print str(timestampMap)
 	response = requests.post(CHECK_FOR_UPDATES_URL, data=mappingToSend)
 	received = response.content
 	mapping = ast.literal_eval(received)
 	toUpdateList = list(mapping.get('update'))
 	toDeleteList = list(mapping.get('delete'))
-	print 'update: '+str(toUpdateList)
-	print 'delete' + str(toDeleteList)
 	if len(toDeleteList):
 		deleteFiles(toDeleteList)
 
@@ -109,28 +98,21 @@ def refreshFiles():
 
 
 def pullFile(fileId):
-	print 'got here in pullFile'
 	data = {'fileId': fileId}
 	response = requests.post(PULL_FILE_URL, data=data)
-	print response.headers.keys()
-	print str(response.headers['content-disposition'])
 	content_disposition = response.headers['content-disposition']
 	filename = content_disposition.split('; ')[1].replace('filename=', '')
 	path = ROOT+'/'+filename
-	print response.content
 	content = response.content
 	timestamp= int(response.headers['timestamp'])
-	print path
 
 	with open(path, "w") as fileoutput:
 		fileoutput.write(content)
 
 	atime = os.path.getatime(path)
-	print atime
 	times = (atime,timestamp)
 	os.utime(path, times)
 	
-	print os.path.getmtime(path)
 
 def deleteFiles(fileList):
 	for f in fileList:
@@ -142,13 +124,11 @@ def getAllFilenamesTimestamps():
 	contents = []
 
 	for x in listdir(rootfolder):
-		if x.startswith('.'):
+		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
-			print 
 			contents.append(x)
 		elif isdir(join(rootfolder,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(rootfolder,x))
 
 	timestampMap={}
@@ -173,12 +153,16 @@ def getSyncStatus():
 	return "OFF"
 
 def toggleSync():
-	global SYNC 
+	global SYNC, backgroundThread, OBSERVER
 	SYNC = not SYNC
 	if SYNC:
 		sync();
-		observer = turnOnWatchdog()
+		OBSERVER = turnOnWatchdog()
+		backgroundThread = Thread(target=backgroundPoller)
+		backgroundThread.start()
 	else:
+		if backgroundThread.isAlive():
+			backgroundThread.join()
 		turnOffWatchdog(OBSERVER)
 
 def sync():
@@ -187,13 +171,11 @@ def sync():
 	contents = []
 
 	for x in listdir(rootfolder):
-		if x.startswith('.'):
+		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
-			print 
 			contents.append(x)
 		elif isdir(join(rootfolder,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(rootfolder,x))
 
 	fileMap = {}
@@ -209,11 +191,13 @@ def sync():
 	data['username'] = USERNAME
 	data['password'] = PASSWORD
 	data['timestampMap'] = str(timestampMap)
-
 	response = requests.post(UPLOAD_URL, files=fileMap, data=data)
 	refreshFiles()
 
-
+def backgroundPoller():
+	while SYNC:
+		time.sleep(4)
+		refreshFiles()
 
 def folder_recurse(contents, folderpath):
 
@@ -225,7 +209,6 @@ def folder_recurse(contents, folderpath):
 		if isfile(join(folderpath,x)):
 			contents.append(join(folderpath,x)[position:])
 		elif isdir(join(folderpath,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(folderpath,x))
 
 
@@ -268,54 +251,65 @@ def change_password():
 		main_menu2()
 
 def signOut():
+	global SYNC
+	SYNC = False
+	if backgroundThread.isAlive():
+		backgroundThread.join()
 	loginOrSignup()
 
 def deleteFile(filepath):
-	print "**************DELTE CALLED*************"
 	data = {'username':USERNAME, 'password':PASSWORD, 'filepath': filepath}
 	response = requests.post(DELETE_URL, data=data)
 
 
 class MyHandler(FileSystemEventHandler):
-    def on_created(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-    	print event
-        if isHiddenFile(event):
-        	return
-        # if event.src_path == ROOT:
-        # 	sync();
-        # print "Created" + event.src_path
-    def on_deleted(self, event):
-    	global deleteThread
-        if isHiddenFile(event):
-        	return
-        position = len(ROOT)+1
-        path =  event.src_path[position:]
-    	deleteThread = Thread(target = deleteFile, args=(path,))
-        print 'About to called DELETE THREAD'
-        deleteThread.start()
-        # if event.src_path == ROOT:
-        # 	sync();
-    def on_modified(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-    	print event
-    	if isHiddenFile(event):
-        	return
-        # if event.src_path == ROOT:
-        # 	sync();
-    def on_moved(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-    	print event
-        if isHiddenFile(event):
-        	return
-        # if event.src_path == ROOT:
-        # 	sync();
+
+	def tempMethod(self):
+		print "Myhandler temp method called"
+
+
+	def on_created(self, event):
+		print 'created watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			return
+		if event.src_path == ROOT:
+			sync();
+
+	def on_deleted(self, event):
+		print "watchdog deleted" + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event) or event.is_directory:
+			return
+		position = len(ROOT)+1
+		path =  event.src_path[position:]
+		deleteThread = Thread(target = deleteFile, args=(path,))
+		deleteThread.start()
+        
+	def on_modified(self, event):
+		print 'modified watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			'hidden file is true'
+			return
+		if event.src_path == ROOT:
+			print 'about to sync'
+			sync();
+	def on_moved(self, event):
+		print 'moved watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			return
+		if event.src_path == ROOT:
+			sync();
 
 
 def isHiddenFile(event):
@@ -332,8 +326,12 @@ def turnOnWatchdog():
 	global OBSERVER
 	event_handler = MyHandler()
 	OBSERVER = Observer()
+	print 'root path: ' + ROOT
+	print str(OBSERVER)
 	OBSERVER.schedule(event_handler,path=ROOT,recursive=True)
 	OBSERVER.start()
+	print OBSERVER.isAlive()
+	event_handler.tempMethod()
 	
 
 def turnOffWatchdog(observer):
@@ -341,13 +339,18 @@ def turnOffWatchdog(observer):
 	observer.join()
 
 
-def setUp(username,password):
-	global USERNAME, PASSWORD, ROOT, SYNC
+def setUp(username,password, url):
+	global USERNAME, PASSWORD, ROOT, SYNC, PULL_FILE_URL, BASE_URL, UPLOAD_URL, GET_FILES_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL, DELETE_URL, CHECK_FOR_UPDATES_URL
 	USERNAME = username
 	PASSWORD = password
+	BASE_URL = url
 	ROOT =  os.path.dirname(os.path.realpath(__file__))
+	UPLOAD_URL = BASE_URL + "myapp/upload/"
+	GET_FILES_URL = BASE_URL + "myapp/get_list_files/"
+	CHECK_PASSWORD_URL = BASE_URL + "myapp/check_password/"
+	CHANGE_PASSWORD_URL = BASE_URL + "myapp/change_password/"
+	CHECK_FOR_UPDATES_URL =  BASE_URL + "myapp/checkForUpdates/"
+	PULL_FILE_URL = BASE_URL + "myapp/pull_file/"
+	DELETE_URL = BASE_URL + "myapp/deleteFile/"
 	SYNC = False
-	#sync()
-	#turnOnWatchdog()
-	#present user with options
 	welcome()
