@@ -281,6 +281,8 @@ class MyHandler(FileSystemEventHandler):
 	def on_deleted(self, event):
 		print "watchdog deleted" + event.src_path
 		global deleteThread
+		if "~" in event.src_path:
+			return
 		if deleteThread.isAlive():
 			deleteThread.join()
 		if isHiddenFile(event) or event.is_directory:
