@@ -20,7 +20,7 @@ def temp(request):
 def checkForUpdates(request):
 	username = request.POST['username']
 	password = request.POST['password']
-	
+
 	user = authenticate(username=username,password=password)
 
 	timestampMap = ast.literal_eval(request.POST['timestampMap'])
@@ -225,7 +225,9 @@ def upload(request):
         return HttpResponse("Hit /upload with no post request")
 
 def get_list_files(request):
-	user = User.objects.get(username__exact="ankitgupta")
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
 	print "---"
 	print str(request.user.username)
 	print "---"

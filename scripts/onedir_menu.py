@@ -225,7 +225,8 @@ def folder_recurse(contents, folderpath):
 
 
 def get_list_of_files_on_server():
-	data = {"username":"ankitgupta","password":"password"}
+	data = {"username":USERNAME,"password":PASSWORD}
+
 	response = requests.post(GET_FILES_URL, data=data)
 	received = response.content
 	mapping = ast.literal_eval(received)
