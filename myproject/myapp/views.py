@@ -69,20 +69,19 @@ def pull_file(request):
 	filename = fileToSend.filename
 	print filename
 	# return HttpResponse("Hey")
-	httpresponse = send_file(path=filename, filename=filename,timestamp=fileToSend.timestamp)
+	httpresponse = send_file(path=path, filename=filename,timestamp=fileToSend.timestamp)
 	return httpresponse
 
 
 def send_file(path, filename = None, mimetype = None, timestamp=100):
-	print "path trying to send: " + path
 
 	if mimetype is None:
 	    mimetype, encoding = mimetypes.guess_type(filename)
 
 	response = HttpResponse(mimetype=mimetype)
 	response['Content-Disposition'] = 'attachment; filename=%s' %filename
-	# response['timestamp'] = timestamp
-	newFile = File(path)
+	response['timestamp'] = timestamp
+	newFile = file(path, "r")
 	response.write(newFile.read())
 	return response
 

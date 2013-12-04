@@ -84,6 +84,11 @@ def main_menu2():
 
 
 def refreshFiles():
+	hadToChange = False
+	if SYNC:
+		hadToChange = True
+		toggleSync()
+
 	timestampMap = getAllFilenamesTimestamps()
 	mappingToSend = {}
 	mappingToSend['username'] = USERNAME
@@ -103,6 +108,9 @@ def refreshFiles():
 	for i in toUpdateList:
 		pullFile(i)
 
+	if hadToChange:
+		toggleSync()
+
 def pullFile(fileId):
 	print 'got here in pullFile'
 	data = {'fileId': fileId}
@@ -114,7 +122,7 @@ def pullFile(fileId):
 	path = ROOT+'/'+filename
 	print response.content
 	content = response.content
-	timestamp=response.headers['timestamp']
+	timestamp= int(response.headers['timestamp'])
 	print 'received timestamp ' + timestamp
 	print path
 
