@@ -17,6 +17,19 @@ def temp(request):
 	print request
 	return HttpResponse("Hello from django")
 
+def deleteFile(request):
+	print '\n\n *************************\n\nDELETE CALLED\n\n*********************************************\n\n'
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+
+	filename = request.POST['filepath']
+	print filename
+	whatFilenameWouldBe = str(user) + '/' + filename
+	doc = Document.objects.get(user=user, localpath=filename)
+	doc.docfile.delete()
+	doc.delete()
+	return HttpResponse("deleted")
 def checkForUpdates(request):
 	username = request.POST['username']
 	password = request.POST['password']
@@ -52,8 +65,12 @@ def checkForUpdates(request):
 	for k in timestampMap:
 		if k in serverTimestampMap and serverTimestampMap[k]>timestampMap[k]:
 			filesToUpdate.append(serverIdMap[k])
+			serverIdMap.pop(k)
 		elif k not in serverTimestampMap:
 			filesToDelete.append(k)
+
+	for key in serverIdMap:
+		filesToUpdate.append(serverIdMap[key])
 
 	result = {'update': filesToUpdate, 'delete': filesToDelete}
 	return HttpResponse( str(result))
@@ -198,10 +215,10 @@ def upload(request):
 	    			newdoc.save()
 
 
-    		for element in qs_list:
-    			print "User " + user.username + " updated file: " + element.filename + " [DELETED]"
-    			element.docfile.delete()
-    			element.delete()
+    		# for element in qs_list:
+    		# 	print "User " + user.username + " updated file: " + element.filename + " [DELETED]"
+    		# 	element.docfile.delete()
+    		# 	element.delete()
 
 
 
