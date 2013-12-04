@@ -12,14 +12,14 @@ from watchdog.events import FileSystemEventHandler
 import ast
 from login_script import loginOrSignup
 
-
-UPLOAD_URL = "http://127.0.0.1:8000/myapp/upload/"
-GET_FILES_URL = "http://127.0.0.1:8000/myapp/get_list_files/"
-CHECK_PASSWORD_URL = "http://127.0.0.1:8000/myapp/check_password/"
-CHANGE_PASSWORD_URL = "http://127.0.0.1:8000/myapp/change_password/"
-CHECK_FOR_UPDATES_URL = "http://127.0.0.1:8000/myapp/checkForUpdates/"
-PULL_FILE_URL = "http://127.0.0.1:8000/myapp/pull_file/"
-DELETE_URL = "http://127.0.0.1:8000/myapp/deleteFile/"
+BASE_URL = ""
+UPLOAD_URL = ""
+GET_FILES_URL = ""
+CHECK_PASSWORD_URL = ""
+CHANGE_PASSWORD_URL = ""
+CHECK_FOR_UPDATES_URL = ""
+PULL_FILE_URL = ""
+DELETE_URL = ""
 USERNAME = "empty"
 PASSWORD = "empty"
 ROOT = ""
@@ -70,10 +70,12 @@ def main_menu2():
 
 		signOut()
 
-	except KeyboardInterrupt ke: 
-		if backgroundThread.isAlive():
-			backgroundThread.stop()
+	except KeyboardInterrupt, ke: 
 
+		global SYNC
+		SYNC = False
+		if backgroundThread.isAlive():
+			backgroundThread.join()
 
 def refreshFiles():
 	
@@ -319,10 +321,18 @@ def turnOffWatchdog(observer):
 	observer.join()
 
 
-def setUp(username,password):
-	global USERNAME, PASSWORD, ROOT, SYNC
+def setUp(username,password, url):
+	global USERNAME, PASSWORD, ROOT, SYNC, PULL_FILE_URL, BASE_URL, UPLOAD_URL, GET_FILES_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL, DELETE_URL
 	USERNAME = username
 	PASSWORD = password
+	BASE_URL = url
 	ROOT =  os.path.dirname(os.path.realpath(__file__))
+	UPLOAD_URL = BASE_URL + "myapp/upload/"
+	GET_FILES_URL = BASE_URL + "myapp/get_list_files/"
+	CHECK_PASSWORD_URL = BASE_URL + "myapp/check_password/"
+	CHANGE_PASSWORD_URL = BASE_URL + "myapp/change_password/"
+	CHECK_FOR_UPDATES_URL =  BASE_URL + "myapp/checkForUpdates/"
+	PULL_FILE_URL = BASE_URL + "myapp/pull_file/"
+	DELETE_URL = BASE_URL + "myapp/deleteFile/"
 	SYNC = False
 	welcome()

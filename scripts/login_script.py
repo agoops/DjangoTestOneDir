@@ -15,10 +15,10 @@ from watchdog.events import FileSystemEventHandler
 
 BASE_URL =""
 
-LOGIN_URL = "http://127.0.0.1:8000/myapp/login/" 
-SIGNUP_URL = "http://127.0.0.1:8000/myapp/signup/"
-CHECK_PASSWORD_URL = "http://127.0.0.1:8000/myapp/check_password/"
-CHANGE_PASSWORD_URL = "http://127.0.0.1:8000/myapp/change_password/"
+LOGIN_URL = "" 
+SIGNUP_URL = ""
+CHECK_PASSWORD_URL = ""
+CHANGE_PASSWORD_URL = ""
 
 
 def loginOrSignup():
@@ -73,7 +73,7 @@ def login_prompt():
 		return
 	if int(response.status_code) ==200:
 		print "\nWelcome to Onedir!"
-		onedir_menu.setUp(username,password)
+		onedir_menu.setUp(username,password, BASE_URL)
 	else:
 		print "Username or password is incorrect. Try again"
 		login_prompt()
@@ -118,7 +118,20 @@ def signup_prompt():
 		return
 
 
+def main(argv):
+	global BASE_URL, LOGIN_URL, SIGNUP_URL, CHECK_PASSWORD_URL, CHANGE_PASSWORD_URL
+	if(len(sys.argv) == 2):
+		url = argv[1]
+	else:
+		url = "http://127.0.0.1:8000/"
+	BASE_URL = url
+	LOGIN_URL = BASE_URL + "admin/login/"
+	SIGNUP_URL = BASE_URL + "myapp/signup/"
+	CHECK_PASSWORD_URL = BASE_URL + "myapp/check_password/"
+	CHANGE_PASSWORD_URL = BASE_URL + "myapp/change_password/s"
+
 if __name__ == "__main__":
+	main(sys.argv[1:])
 	loginOrSignup()
 
 

@@ -11,6 +11,9 @@ from django.core.files import File
 from models import Document
 import ast
 import os, mimetypes
+import logging
+
+logger = logging.getLogger(__name__)
 
 def temp(request):
 	return HttpResponse("Hello from django")
@@ -35,7 +38,7 @@ def checkForUpdates(request):
 	timestampMap = ast.literal_eval(request.POST['timestampMap'])
 	
 	filesByThisUser = Document.objects.filter(user=user)
-
+	logger.debug(username + " synched")
 	# converting timestamps to ints
 	for k in timestampMap:
 		timestampMap[k]=int(float(timestampMap[k]))
@@ -107,8 +110,10 @@ def login(request):
 		password = request.POST['password']
 		user = authenticate(username = username, password = password)
 		if (user is not None):
+			logger.debug(username + " logged in")
 			return HttpResponse("User logged in!", status = 200)
 		else:
+			logger.debug("Attempted login by " + username)
 			return HttpResponse("Login failed", status = 404)
 
 
@@ -128,7 +133,7 @@ def signup(request):
 			user.last_name = last_name
 			user.first_name = first_name
 			user.save()
-
+			logger.debug(username + "Signed up")
 
 		return HttpResponse("User created!")
 
@@ -149,6 +154,7 @@ def change_password(request):
 		u = User.objects.get(username__exact=username)
 		u.set_password(password)
 		u.save()
+		logger.debug(username + "password changed")
 		return HttpResponse("Password changed!")
 
 def printAllDocsByUser(user=None):
@@ -197,7 +203,7 @@ def upload(request):
 	    			timestamp=int(float(timestampMap.get(k)))
 	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
 	    			newdoc.save()
-
+	    	logger.debug(username + "uploaded files")
 	    	return HttpResponse("Files uploaded")
 
 
