@@ -83,14 +83,11 @@ def refreshFiles():
 	mappingToSend['username'] = USERNAME
 	mappingToSend['password'] = PASSWORD
 	mappingToSend['timestampMap'] = str(timestampMap)
-	print str(timestampMap)
 	response = requests.post(CHECK_FOR_UPDATES_URL, data=mappingToSend)
 	received = response.content
 	mapping = ast.literal_eval(received)
 	toUpdateList = list(mapping.get('update'))
 	toDeleteList = list(mapping.get('delete'))
-	print 'update: '+str(toUpdateList)
-	print 'delete' + str(toDeleteList)
 	if len(toDeleteList):
 		deleteFiles(toDeleteList)
 
@@ -99,28 +96,21 @@ def refreshFiles():
 
 
 def pullFile(fileId):
-	print 'got here in pullFile'
 	data = {'fileId': fileId}
 	response = requests.post(PULL_FILE_URL, data=data)
-	print response.headers.keys()
-	print str(response.headers['content-disposition'])
 	content_disposition = response.headers['content-disposition']
 	filename = content_disposition.split('; ')[1].replace('filename=', '')
 	path = ROOT+'/'+filename
-	print response.content
 	content = response.content
 	timestamp= int(response.headers['timestamp'])
-	print path
 
 	with open(path, "w") as fileoutput:
 		fileoutput.write(content)
 
 	atime = os.path.getatime(path)
-	print atime
 	times = (atime,timestamp)
 	os.utime(path, times)
 	
-	print os.path.getmtime(path)
 
 def deleteFiles(fileList):
 	for f in fileList:
@@ -135,10 +125,8 @@ def getAllFilenamesTimestamps():
 		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
-			print 
 			contents.append(x)
 		elif isdir(join(rootfolder,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(rootfolder,x))
 
 	timestampMap={}
@@ -184,10 +172,8 @@ def sync():
 		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
-			print 
 			contents.append(x)
 		elif isdir(join(rootfolder,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(rootfolder,x))
 
 	fileMap = {}
@@ -222,7 +208,6 @@ def folder_recurse(contents, folderpath):
 		if isfile(join(folderpath,x)):
 			contents.append(join(folderpath,x)[position:])
 		elif isdir(join(folderpath,x)):
-			print "Folder: " + x
 			folder_recurse(contents,join(folderpath,x))
 
 
@@ -268,7 +253,6 @@ def signOut():
 	loginOrSignup()
 
 def deleteFile(filepath):
-	print "**************DELTE CALLED*************"
 	data = {'username':USERNAME, 'password':PASSWORD, 'filepath': filepath}
 	response = requests.post(DELETE_URL, data=data)
 
@@ -278,7 +262,6 @@ class MyHandler(FileSystemEventHandler):
     	global deleteThread
     	if deleteThread.isAlive():
     		deleteThread.join()
-    	print event
         if isHiddenFile(event):
         	return
         if event.src_path == ROOT:
@@ -293,14 +276,12 @@ class MyHandler(FileSystemEventHandler):
         position = len(ROOT)+1
         path =  event.src_path[position:]
     	deleteThread = Thread(target = deleteFile, args=(path,))
-        print 'About to called DELETE THREAD'
         deleteThread.start()
         
     def on_modified(self, event):
     	global deleteThread
     	if deleteThread.isAlive():
     		deleteThread.join()
-    	print event
     	if isHiddenFile(event):
         	return
         if event.src_path == ROOT:
@@ -309,7 +290,6 @@ class MyHandler(FileSystemEventHandler):
     	global deleteThread
     	if deleteThread.isAlive():
     		deleteThread.join()
-    	print event
         if isHiddenFile(event):
         	return
         if event.src_path == ROOT:
@@ -345,7 +325,4 @@ def setUp(username,password):
 	PASSWORD = password
 	ROOT =  os.path.dirname(os.path.realpath(__file__))
 	SYNC = False
-	#sync()
-	#turnOnWatchdog()
-	#present user with options
 	welcome()
