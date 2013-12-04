@@ -7,18 +7,84 @@ from django.contrib.auth.models import User
 from django.core.context_processors import csrf
 from django.shortcuts import render_to_response
 from django.contrib.auth import authenticate
+from django.core.files import File
 from models import Document
-
+import ast
+import os, mimetypes
 
 def temp(request):
 	print "temp entered"
 	print request
 	return HttpResponse("Hello from django")
 
+def checkForUpdates(request):
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username,password=password)
+
+	timestampMap = ast.literal_eval(request.POST['timestampMap'])
 	
-def index(request):
-	print 'Heyjkfdlsajfks'
-	return HttpResponse("Hello, world. You're at the polls index.")
+	filesByThisUser = Document.objects.filter(user=user)
+
+	# converting timestamps to ints
+	print "Files and timestamps sent by local"
+	for k in timestampMap:
+		timestampMap[k]=int(float(timestampMap[k]))
+		print k,timestampMap[k]
+	print 
+	print 
+
+	serverTimestampMap = {}
+	serverIdMap={}
+	filesByThisUser = list(Document.objects.filter(user=user))
+	print "Files and timestamps on server"
+
+	for doc in filesByThisUser:
+		serverTimestampMap[doc.filename] = int(doc.timestamp)
+		serverIdMap[doc.filename]= doc.id
+		print doc.filename + " " +str(doc.timestamp) + " "+ str(doc.id)
+
+	filesToDelete=[]
+	filesToUpdate=[]	
+	print "\n Files to send back to client"
+
+	for k in timestampMap:
+		if k in serverTimestampMap and serverTimestampMap[k]>timestampMap[k]:
+			filesToUpdate.append(serverIdMap[k])
+		elif k not in serverTimestampMap:
+			filesToDelete.append(k)
+
+	result = {'update': filesToUpdate, 'delete': filesToDelete}
+	return HttpResponse( str(result))
+	
+
+def pull_file(request):
+
+	fileId = int(request.POST['fileId'])
+	print '\nReceived request to pull file: '  + str(fileId)
+	fileToSend = Document.objects.get(id=fileId)
+	path = fileToSend.docfile.path
+	print path
+	filename = fileToSend.filename
+	print filename
+	# return HttpResponse("Hey")
+	httpresponse = send_file(path=filename, filename=filename,timestamp=fileToSend.timestamp)
+	return httpresponse
+
+
+def send_file(path, filename = None, mimetype = None, timestamp=100):
+	print "path trying to send: " + path
+
+	if mimetype is None:
+	    mimetype, encoding = mimetypes.guess_type(filename)
+
+	response = HttpResponse(mimetype=mimetype)
+	response['Content-Disposition'] = 'attachment; filename=%s' %filename
+	# response['timestamp'] = timestamp
+	newFile = File(path)
+	response.write(newFile.read())
+	return response
+
 
 def login(request):
 	if request.method == "POST":
@@ -154,7 +220,7 @@ def upload(request):
     else:
         return HttpResponse("Hit /upload with no post request")
 
-def get_files(request):
+def get_list_files(request):
 	user = User.objects.get(username__exact="ankitgupta")
 	print "---"
 	print str(request.user.username)

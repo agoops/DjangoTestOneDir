@@ -104,7 +104,6 @@ def refreshFiles():
 		pullFile(i)
 
 def pullFile(fileId):
-	print 'got here in pullFile'
 	data = {'fileId': fileId}
 	response = requests.post(PULL_FILE_URL, data=data)
 	print response.headers.keys()

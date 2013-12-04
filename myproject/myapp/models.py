@@ -14,11 +14,8 @@ class Document(models.Model):
 	docfile = models.FileField(upload_to=base)
 
 	def __str__(self):
-   		return "User: " +str(self.user)+ " Filename: "+ str(self.docfile.name)+ " Filesize: "+self.docfile.size+" bytes"
+   		return "User: " +str(self.user)+ " Filename: "+ str(self.docfile.name)+ " Filesize: "+str(self.docfile.size)+" bytes"
 
-	def __del__(self):
-		self.docfile.delete()
-		self.delete()
 
 	@property
 	def filename(self):
