@@ -123,7 +123,6 @@ def pullFile(fileId):
 	print response.content
 	content = response.content
 	timestamp= int(response.headers['timestamp'])
-	print 'received timestamp ' + timestamp
 	print path
 
 	with open(path, "w") as fileoutput:

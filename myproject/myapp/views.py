@@ -170,32 +170,38 @@ def upload(request):
 	    			fileNameOnSystem = str(xx.docfile.name)
 	    			print whatFilenameWouldBe
 	    			print fileNameOnSystem
-	    			if fileNameOnSystem == whatFilenameWouldBe:
-	    				print "File exists"
+	    			if fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) == xx.timestamp:
+	    				# File exists, and does not need to be updated
+	    				# Remove from query set so it does not get deleted
+	    				qs_list.remove(xx)
+	    				fileFound = True
+	    				break
+	    			elif fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) > xx.timestamp:
+	    				print "User " + user.username + " updated file: " + fileNameOnSystem
 	    				xx.docfile.delete()
 	    				xx.delete()
 	    				qs_list.remove(xx)
 	    				actualFile=request.FILES[k]
 	    				timestamp = int(float(timestampMap.get(k)))
-	    				print timestamp
 
 
 	    				newdoc=Document(user=user, timestamp=timestamp,localpath=k,docfile=actualFile)
 	    				newdoc.save()
 	    				fileFound=True
-	    		
+	    				break
+	    			
 
 	    		if fileFound==False:
-	    			print "New file"
+	    			print "User " + user.username + " added new file: " + k
 	    			timestamp=int(float(timestampMap.get(k)))
 	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
 	    			newdoc.save()
 
 
     		for element in qs_list:
+    			print "User " + user.username + " updated file: " + element.filename + " [DELETED]"
     			element.docfile.delete()
     			element.delete()
-    			print "deleted" + str(element)
 
 
 
