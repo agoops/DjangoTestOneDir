@@ -19,11 +19,13 @@ CHECK_PASSWORD_URL = "http://127.0.0.1:8000/myapp/check_password/"
 CHANGE_PASSWORD_URL = "http://127.0.0.1:8000/myapp/change_password/"
 CHECK_FOR_UPDATES_URL = "http://127.0.0.1:8000/myapp/checkForUpdates/"
 PULL_FILE_URL = "http://127.0.0.1:8000/myapp/pull_file/"
+DELETE_URL = "http://127.0.0.1:8000/myapp/deleteFile/"
 USERNAME = "empty"
 PASSWORD = "empty"
 ROOT = ""
 SYNC = False
 OBSERVER = None
+deleteThread = Thread()
 
 
 def welcome():
@@ -84,6 +86,7 @@ def main_menu2():
 
 
 def refreshFiles():
+<<<<<<< HEAD
     timestampMap = getAllFilenamesTimestamps()
     mappingToSend = {}
     mappingToSend['username'] = USERNAME
@@ -102,8 +105,32 @@ def refreshFiles():
 
     for i in toUpdateList:
         pullFile(i)
+=======
+	
+
+	timestampMap = getAllFilenamesTimestamps()
+	mappingToSend = {}
+	mappingToSend['username'] = USERNAME
+	mappingToSend['password'] = PASSWORD
+	mappingToSend['timestampMap'] = str(timestampMap)
+	print str(timestampMap)
+	response = requests.post(CHECK_FOR_UPDATES_URL, data=mappingToSend)
+	received = response.content
+	mapping = ast.literal_eval(received)
+	toUpdateList = list(mapping.get('update'))
+	toDeleteList = list(mapping.get('delete'))
+	print 'update: '+str(toUpdateList)
+	print 'delete' + str(toDeleteList)
+	if len(toDeleteList):
+		deleteFiles(toDeleteList)
+
+	for i in toUpdateList:
+		pullFile(i)
+>>>>>>> origin/master
+
 
 def pullFile(fileId):
+<<<<<<< HEAD
     print 'got here in pullFile'
     data = {'fileId': fileId}
     response = requests.post(PULL_FILE_URL, data=data)
@@ -127,6 +154,30 @@ def pullFile(fileId):
     os.utime(path, times)
 
     print os.path.getmtime(path)
+=======
+	print 'got here in pullFile'
+	data = {'fileId': fileId}
+	response = requests.post(PULL_FILE_URL, data=data)
+	print response.headers.keys()
+	print str(response.headers['content-disposition'])
+	content_disposition = response.headers['content-disposition']
+	filename = content_disposition.split('; ')[1].replace('filename=', '')
+	path = ROOT+'/'+filename
+	print response.content
+	content = response.content
+	timestamp= int(response.headers['timestamp'])
+	print path
+
+	with open(path, "w") as fileoutput:
+		fileoutput.write(content)
+
+	atime = os.path.getatime(path)
+	print atime
+	times = (atime,timestamp)
+	os.utime(path, times)
+	
+	print os.path.getmtime(path)
+>>>>>>> origin/master
 
 def deleteFiles(fileList):
     for f in fileList:
@@ -178,6 +229,7 @@ def toggleSync():
         turnOffWatchdog(OBSERVER)
 
 def sync():
+<<<<<<< HEAD
 
     rootfolder = ROOT
     contents = []
@@ -206,6 +258,38 @@ def sync():
     data['password'] = PASSWORD
     data['timestampMap'] = str(timestampMap)
     response = requests.post(UPLOAD_URL, files=fileMap, data=data)
+=======
+	
+	rootfolder = ROOT
+	contents = []
+
+	for x in listdir(rootfolder):
+		if x.startswith('.'):
+			continue
+		if isfile(join(rootfolder,x)):
+			print 
+			contents.append(x)
+		elif isdir(join(rootfolder,x)):
+			print "Folder: " + x
+			folder_recurse(contents,join(rootfolder,x))
+
+	fileMap = {}
+	timestampMap = {}
+	for f in contents:
+		actualFile = codecs.open(f,'r')
+		timestamp = str(os.path.getmtime(join(rootfolder,f)))
+		
+		fileMap[str(f)] = actualFile
+		timestampMap[str(f)] = timestamp
+
+	data = {}
+	data['username'] = USERNAME
+	data['password'] = PASSWORD
+	data['timestampMap'] = str(timestampMap)
+
+	response = requests.post(UPLOAD_URL, files=fileMap, data=data)
+	refreshFiles()
+>>>>>>> origin/master
 
 
 
@@ -264,16 +348,34 @@ def change_password():
 def signOut():
     loginOrSignup()
 
+def deleteFile(filepath):
+	print "**************DELTE CALLED*************"
+	data = {'username':USERNAME, 'password':PASSWORD, 'filepath': filepath}
+	response = requests.post(DELETE_URL, data=data)
+
 
 class MyHandler(FileSystemEventHandler):
     def on_created(self, event):
+    	global deleteThread
+    	if deleteThread.isAlive():
+    		deleteThread.join()
+    	print event
         if isHiddenFile(event):
+<<<<<<< HEAD
             return
         if event.src_path == ROOT:
             sync();
         print "Created" + event.src_path
+=======
+        	return
+        # if event.src_path == ROOT:
+        # 	sync();
+        # print "Created" + event.src_path
+>>>>>>> origin/master
     def on_deleted(self, event):
+    	global deleteThread
         if isHiddenFile(event):
+<<<<<<< HEAD
             return
         if event.src_path == ROOT:
             sync();
@@ -282,11 +384,40 @@ class MyHandler(FileSystemEventHandler):
             return
         if event.src_path == ROOT:
             sync();
+=======
+        	return
+        position = len(ROOT)+1
+        path =  event.src_path[position:]
+    	deleteThread = Thread(target = deleteFile, args=(path,))
+        print 'About to called DELETE THREAD'
+        deleteThread.start()
+        # if event.src_path == ROOT:
+        # 	sync();
+    def on_modified(self, event):
+    	global deleteThread
+    	if deleteThread.isAlive():
+    		deleteThread.join()
+    	print event
+    	if isHiddenFile(event):
+        	return
+        # if event.src_path == ROOT:
+        # 	sync();
+>>>>>>> origin/master
     def on_moved(self, event):
+    	global deleteThread
+    	if deleteThread.isAlive():
+    		deleteThread.join()
+    	print event
         if isHiddenFile(event):
+<<<<<<< HEAD
             return
         if event.src_path == ROOT:
             sync();
+=======
+        	return
+        # if event.src_path == ROOT:
+        # 	sync();
+>>>>>>> origin/master
 
 
 def isHiddenFile(event):

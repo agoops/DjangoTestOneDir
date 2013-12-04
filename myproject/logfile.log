@@ -1,0 +1,19 @@
+[04/Dec/2013 00:00:28] DEBUG [myapp.views:102] LOGIN FAILED--DEBUG!
+[04/Dec/2013 00:00:28] ERROR [myapp.views:103] LOGIN FAILED--ERROR!
+[04/Dec/2013 00:00:28] INFO [myapp.views:104] LOGIN FAILED--INFO!
+[04/Dec/2013 00:05:00] DEBUG [myapp.views:102] LOGIN FAILED--DEBUG!
+[04/Dec/2013 00:05:00] ERROR [myapp.views:103] LOGIN FAILED--ERROR!
+[04/Dec/2013 00:05:00] INFO [myapp.views:104] LOGIN FAILED--INFO!
+[04/Dec/2013 00:08:25] ERROR [myapp.views:103] Improper Login by username:cocaine
+[04/Dec/2013 00:09:15] DEBUG [myapp.views:103] Improper Login by username:cocaine
+[04/Dec/2013 00:17:07] DEBUG [myapp.views:102] Login:petersimon
+[04/Dec/2013 00:17:08] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:17:26] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:17:45] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:17:49] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:18:27] DEBUG [myapp.views:62] User petersimon synched
+[04/Dec/2013 00:18:27] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:50:41] DEBUG [myapp.views:102] Login:petersimon
+[04/Dec/2013 00:50:41] DEBUG [myapp.views:253] List of files view by user petersimon
+[04/Dec/2013 00:58:07] DEBUG [myapp.views:102] Login:petersimon
+[04/Dec/2013 00:58:08] DEBUG [myapp.views:253] List of files view by user petersimon

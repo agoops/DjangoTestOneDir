@@ -12,4 +12,5 @@ urlpatterns = patterns('',
     url(r'^get_list_files/$',views.get_list_files, name='get_list_files'),
     url(r'^checkForUpdates/$',views.checkForUpdates, name='checkForUpdates'),
 	url(r'^pull_file/$',views.pull_file, name='pull_file'),
+	url(r'^deleteFile/$',views.deleteFile, name='deleteFile'),
 	)

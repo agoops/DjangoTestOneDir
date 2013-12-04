@@ -20,7 +20,21 @@ def temp(request):
     print request
     return HttpResponse("Hello from django")
 
+def deleteFile(request):
+	print '\n\n *************************\n\nDELETE CALLED\n\n*********************************************\n\n'
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+
+	filename = request.POST['filepath']
+	print filename
+	whatFilenameWouldBe = str(user) + '/' + filename
+	doc = Document.objects.get(user=user, localpath=filename)
+	doc.docfile.delete()
+	doc.delete()
+	return HttpResponse("deleted")
 def checkForUpdates(request):
+<<<<<<< HEAD
     username = request.POST['username']
     password = request.POST['password']
 
@@ -80,10 +94,73 @@ def pull_file(request):
 
 def send_file(path, filename = None, mimetype = None, timestamp=100):
     print "path trying to send: " + path
+=======
+	username = request.POST['username']
+	password = request.POST['password']
+
+	user = authenticate(username=username,password=password)
+
+	timestampMap = ast.literal_eval(request.POST['timestampMap'])
+	
+	filesByThisUser = Document.objects.filter(user=user)
+
+	# converting timestamps to ints
+	print "Files and timestamps sent by local"
+	for k in timestampMap:
+		timestampMap[k]=int(float(timestampMap[k]))
+		print k,timestampMap[k]
+	print 
+	print 
+
+	serverTimestampMap = {}
+	serverIdMap={}
+	filesByThisUser = list(Document.objects.filter(user=user))
+	print "Files and timestamps on server"
+
+	for doc in filesByThisUser:
+		serverTimestampMap[doc.filename] = int(doc.timestamp)
+		serverIdMap[doc.filename]= doc.id
+		print doc.filename + " " +str(doc.timestamp) + " "+ str(doc.id)
+
+	filesToDelete=[]
+	filesToUpdate=[]	
+	print "\n Files to send back to client"
+
+	for k in timestampMap:
+		if k in serverTimestampMap and serverTimestampMap[k]>timestampMap[k]:
+			filesToUpdate.append(serverIdMap[k])
+			serverIdMap.pop(k)
+		elif k not in serverTimestampMap:
+			filesToDelete.append(k)
+
+	for key in serverIdMap:
+		filesToUpdate.append(serverIdMap[key])
+
+	result = {'update': filesToUpdate, 'delete': filesToDelete}
+	return HttpResponse( str(result))
+	
+
+def pull_file(request):
+
+	fileId = int(request.POST['fileId'])
+	print '\nReceived request to pull file: '  + str(fileId)
+	fileToSend = Document.objects.get(id=fileId)
+	path = fileToSend.docfile.path
+	print path
+	filename = fileToSend.filename
+	print filename
+	# return HttpResponse("Hey")
+	httpresponse = send_file(path=path, filename=filename,timestamp=fileToSend.timestamp)
+	return httpresponse
+
+
+def send_file(path, filename = None, mimetype = None, timestamp=100):
+>>>>>>> origin/master
 
     if mimetype is None:
         mimetype, encoding = mimetypes.guess_type(filename)
 
+<<<<<<< HEAD
     response = HttpResponse(mimetype=mimetype)
     response['Content-Disposition'] = 'attachment; filename=%s' %filename
     # response['timestamp'] = timestamp
@@ -91,6 +168,14 @@ def send_file(path, filename = None, mimetype = None, timestamp=100):
     response.write(newFile.read())
     logger.debug("File Sent to path:" + path)
     return response
+=======
+	response = HttpResponse(mimetype=mimetype)
+	response['Content-Disposition'] = 'attachment; filename=%s' %filename
+	response['timestamp'] = timestamp
+	newFile = file(path, "r")
+	response.write(newFile.read())
+	return response
+>>>>>>> origin/master
 
 
 def login(request):
@@ -178,6 +263,7 @@ def upload(request):
                 print k
                 whatFilenameWouldBe = str(user)+'/'+k
 
+<<<<<<< HEAD
                 fileFound=False
                 for xx in qs:
                     fileNameOnSystem = str(xx.docfile.name)
@@ -197,6 +283,39 @@ def upload(request):
                         newdoc.save()
                         fileFound=True
 
+=======
+	    		fileFound=False
+	    		for xx in qs: 
+	    			fileNameOnSystem = str(xx.docfile.name)
+	    			print whatFilenameWouldBe
+	    			print fileNameOnSystem
+	    			if fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) == xx.timestamp:
+	    				# File exists, and does not need to be updated
+	    				# Remove from query set so it does not get deleted
+	    				qs_list.remove(xx)
+	    				fileFound = True
+	    				break
+	    			elif fileNameOnSystem == whatFilenameWouldBe and int(float(timestampMap.get(k))) > xx.timestamp:
+	    				print "User " + user.username + " updated file: " + fileNameOnSystem
+	    				xx.docfile.delete()
+	    				xx.delete()
+	    				qs_list.remove(xx)
+	    				actualFile=request.FILES[k]
+	    				timestamp = int(float(timestampMap.get(k)))
+
+
+	    				newdoc=Document(user=user, timestamp=timestamp,localpath=k,docfile=actualFile)
+	    				newdoc.save()
+	    				fileFound=True
+	    				break
+	    			
+
+	    		if fileFound==False:
+	    			print "User " + user.username + " added new file: " + k
+	    			timestamp=int(float(timestampMap.get(k)))
+	    			newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
+	    			newdoc.save()
+>>>>>>> origin/master
 
                 if fileFound==False:
                     print "New file"
@@ -204,6 +323,13 @@ def upload(request):
                     newdoc = Document(user=user, timestamp=timestamp,localpath=k, docfile=request.FILES[k])
                     newdoc.save()
 
+<<<<<<< HEAD
+=======
+    		# for element in qs_list:
+    		# 	print "User " + user.username + " updated file: " + element.filename + " [DELETED]"
+    		# 	element.docfile.delete()
+    		# 	element.delete()
+>>>>>>> origin/master
 
             for element in qs_list:
                 element.docfile.delete()
