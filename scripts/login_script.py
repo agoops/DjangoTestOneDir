@@ -1,5 +1,6 @@
 import urllib
 import urllib2
+import getpass
 import onedir_menu
 import os
 import Cookie
@@ -11,6 +12,7 @@ import requests
 import logging
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+
 
 
 BASE_URL =""
@@ -26,7 +28,7 @@ def loginOrSignup():
 	input = raw_input("Welcome to OneDir! Please make a selection: \n\t" \
 		"[1] Login\n\t" \
 		"[2] Sign up as a new user\n\t" \
-		"[3] Quit")
+		"[3] Quit\n\t")
 
 	try:
 		selection = int(input)
@@ -52,7 +54,7 @@ def login_prompt():
 
 	print "\nPlease log in."
 	username = raw_input("Username: ")
-	password = raw_input("Password: ")
+	password = getpass.getpass()
 
 	values = {'username': username, 'password': password}
 	
