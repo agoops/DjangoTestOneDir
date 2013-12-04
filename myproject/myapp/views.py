@@ -164,6 +164,7 @@ def printAllDocsByUser(user=None):
 	docs = Document.objects.filter(user=user)
 
 def upload(request):
+	print 'upload reached'
 	# Handle file upload
 	if request.method == 'POST':
 

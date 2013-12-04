@@ -275,8 +275,8 @@ class MyHandler(FileSystemEventHandler):
 			deleteThread.join()
 		if isHiddenFile(event):
 			return
-		if event.src_path == ROOT:
-			sync();
+		
+		sync()
 
 	def on_deleted(self, event):
 		print "watchdog deleted" + event.src_path
@@ -300,9 +300,9 @@ class MyHandler(FileSystemEventHandler):
 		if isHiddenFile(event):
 			'hidden file is true'
 			return
-		if event.src_path == ROOT:
-			print 'about to sync'
-			sync();
+		
+		print 'about to sync'
+		sync()
 	def on_moved(self, event):
 		print 'moved watchdog' + event.src_path
 		global deleteThread
@@ -310,8 +310,7 @@ class MyHandler(FileSystemEventHandler):
 			deleteThread.join()
 		if isHiddenFile(event):
 			return
-		if event.src_path == ROOT:
-			sync();
+		sync()
 
 
 def isHiddenFile(event):
