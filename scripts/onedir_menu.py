@@ -153,11 +153,11 @@ def getSyncStatus():
 	return "OFF"
 
 def toggleSync():
-	global SYNC, backgroundThread 
+	global SYNC, backgroundThread, OBSERVER
 	SYNC = not SYNC
 	if SYNC:
 		sync();
-		observer = turnOnWatchdog()
+		OBSERVER = turnOnWatchdog()
 		backgroundThread = Thread(target=backgroundPoller)
 		backgroundThread.start()
 	else:
@@ -263,42 +263,55 @@ def deleteFile(filepath):
 
 
 class MyHandler(FileSystemEventHandler):
-    def on_created(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-        if isHiddenFile(event):
-        	return
-        if event.src_path == ROOT:
-        	sync();
 
-    def on_deleted(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-        if isHiddenFile(event) or event.is_directory:
-        	return
-        position = len(ROOT)+1
-        path =  event.src_path[position:]
-    	deleteThread = Thread(target = deleteFile, args=(path,))
-        deleteThread.start()
+	def tempMethod(self):
+		print "Myhandler temp method called"
+
+	def on_any_event(event):
+		print "any event" + event.src_path
+		
+	def on_created(self, event):
+		print 'created watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			return
+		if event.src_path == ROOT:
+			sync();
+
+	def on_deleted(self, event):
+		print "watchdog deleted" + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event) or event.is_directory:
+			return
+		position = len(ROOT)+1
+		path =  event.src_path[position:]
+		deleteThread = Thread(target = deleteFile, args=(path,))
+		deleteThread.start()
         
-    def on_modified(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-    	if isHiddenFile(event):
-        	return
-        if event.src_path == ROOT:
-        	sync();
-    def on_moved(self, event):
-    	global deleteThread
-    	if deleteThread.isAlive():
-    		deleteThread.join()
-        if isHiddenFile(event):
-        	return
-        if event.src_path == ROOT:
-        	sync();
+	def on_modified(self, event):
+		print 'modified watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			'hidden file is true'
+			return
+		if event.src_path == ROOT:
+			print 'about to sync'
+			sync();
+	def on_moved(self, event):
+		print 'moved watchdog' + event.src_path
+		global deleteThread
+		if deleteThread.isAlive():
+			deleteThread.join()
+		if isHiddenFile(event):
+			return
+		if event.src_path == ROOT:
+			sync();
 
 
 def isHiddenFile(event):
@@ -315,8 +328,12 @@ def turnOnWatchdog():
 	global OBSERVER
 	event_handler = MyHandler()
 	OBSERVER = Observer()
+	print 'root path: ' + ROOT
+	print str(OBSERVER)
 	OBSERVER.schedule(event_handler,path=ROOT,recursive=True)
 	OBSERVER.start()
+	print OBSERVER.isAlive()
+	event_handler.tempMethod()
 	
 
 def turnOffWatchdog(observer):
