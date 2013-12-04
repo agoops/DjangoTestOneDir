@@ -26,6 +26,7 @@ ROOT = ""
 SYNC = False
 OBSERVER = None
 deleteThread = Thread()
+backgroundThread = Thread()
 
 
 def welcome():
@@ -35,54 +36,43 @@ def welcome():
 	main_menu2()
 
 def main_menu2():
-	
-	while (True):
-		printFiles()
-		input = raw_input("\nMain Menu:Please make a selection: \n\t" \
-		"[1] Toggle Sync - Currently ["+getSyncStatus()+"] \n\t" \
-		"[2] Refresh\n\t" \
-		"[3] Change Password\n\t" \
-		"[4] Sign out\n\t"\
-		"[5] Pull Files")
+	try:
+		while (True):
+			printFiles()
+			input = raw_input("\nMain Menu:Please make a selection: \n\t" \
+			"[1] Toggle Sync - Currently ["+getSyncStatus()+"] \n\t" \
+			"[2] Change Password\n\t" \
+			"[3] Sign out\n\t")
 
-		try:
-			selection = int(input)
-			if selection == 1:
-				try:
-					toggleSync()
-				except Exception, e:
-					print "toggleSync() exception"
-					print e
-			elif selection == 2:
-				try:
-					print refreshFiles()
-				except Exception, e:
-					print "refresh() exception"
-					print e
-			elif selection == 3:
-				try:
-					change_password()
-				except Exception,e :
-					print "change_passwords exception"
-					print e
-			elif selection == 4:
-				try:
-					break
-				except Exception, e:
-					print "sync() exception"
-					print e
-			elif selection == 5:
-				try:
-					print "Action not available yet"
-				except Exception, e:
-					print "pullFiles() exception"
-					print e
-			else:
-				print "Invalid input. Try again"
-		except Exception, e:
-			print "Invalid Input. Try again."
+			try:
+				selection = int(input)
+				if selection == 1:
+					try:
+						toggleSync()
+					except Exception, e:
+						print "toggleSync() exception"
+						print e
+				elif selection == 2:
+					try:
+						change_password()
+					except Exception,e :
+						print "change_passwords exception"
+						print e
+				elif selection == 3:
+					try:
+						break
+					except Exception, e:
+						print e
+				else:
+					print "Invalid input. Try again"
+			except Exception, e:
+				print "Invalid Input. Try again."
 
-	signOut()
+		signOut()
+
+	except KeyboardInterrupt ke: 
+		if backgroundThread.isAlive():
+			backgroundThread.stop()
 
 
 def refreshFiles():
@@ -142,7 +132,7 @@ def getAllFilenamesTimestamps():
 	contents = []
 
 	for x in listdir(rootfolder):
-		if x.startswith('.'):
+		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
 			print 
@@ -173,12 +163,16 @@ def getSyncStatus():
 	return "OFF"
 
 def toggleSync():
-	global SYNC 
+	global SYNC, backgroundThread 
 	SYNC = not SYNC
 	if SYNC:
 		sync();
 		observer = turnOnWatchdog()
+		backgroundThread = Thread(target=backgroundPoller)
+		backgroundThread.start()
 	else:
+		backgroundThread.join()
+		backgroundThread.stop
 		turnOffWatchdog(OBSERVER)
 
 def sync():
@@ -187,7 +181,7 @@ def sync():
 	contents = []
 
 	for x in listdir(rootfolder):
-		if x.startswith('.'):
+		if x.startswith('.') or x.endswith("onedir_menu.py") or x.endswith("login_script.py") or x.endswith(".pyc"):
 			continue
 		if isfile(join(rootfolder,x)):
 			print 
@@ -213,7 +207,10 @@ def sync():
 	response = requests.post(UPLOAD_URL, files=fileMap, data=data)
 	refreshFiles()
 
-
+def backgroundPoller():
+	while SYNC:
+		time.sleep(4)
+		refreshFiles()
 
 def folder_recurse(contents, folderpath):
 
@@ -284,20 +281,21 @@ class MyHandler(FileSystemEventHandler):
     	print event
         if isHiddenFile(event):
         	return
-        # if event.src_path == ROOT:
-        # 	sync();
-        # print "Created" + event.src_path
+        if event.src_path == ROOT:
+        	sync();
+
     def on_deleted(self, event):
     	global deleteThread
-        if isHiddenFile(event):
+    	if deleteThread.isAlive():
+    		deleteThread.join()
+        if isHiddenFile(event) or event.is_directory:
         	return
         position = len(ROOT)+1
         path =  event.src_path[position:]
     	deleteThread = Thread(target = deleteFile, args=(path,))
         print 'About to called DELETE THREAD'
         deleteThread.start()
-        # if event.src_path == ROOT:
-        # 	sync();
+        
     def on_modified(self, event):
     	global deleteThread
     	if deleteThread.isAlive():
@@ -305,8 +303,8 @@ class MyHandler(FileSystemEventHandler):
     	print event
     	if isHiddenFile(event):
         	return
-        # if event.src_path == ROOT:
-        # 	sync();
+        if event.src_path == ROOT:
+        	sync();
     def on_moved(self, event):
     	global deleteThread
     	if deleteThread.isAlive():
@@ -314,8 +312,8 @@ class MyHandler(FileSystemEventHandler):
     	print event
         if isHiddenFile(event):
         	return
-        # if event.src_path == ROOT:
-        # 	sync();
+        if event.src_path == ROOT:
+        	sync();
 
 
 def isHiddenFile(event):

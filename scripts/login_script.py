@@ -62,7 +62,7 @@ def login_prompt():
 	# code = 404
 	# the_page = "Page not set yet"
 	
-	try:
+	try:   
 		response = requests.post(LOGIN_URL, data=values)
 		# response = urllib2.urlopen(req)
 		# code = response.getcode()

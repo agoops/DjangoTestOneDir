@@ -62,14 +62,28 @@ def checkForUpdates(request):
 	filesToUpdate=[]	
 	print "\n Files to send back to client"
 
+
+
+
+
+
+
+
+
+
 	for k in timestampMap:
 		if k in serverTimestampMap and serverTimestampMap[k]>timestampMap[k]:
 			filesToUpdate.append(serverIdMap[k])
-			serverIdMap.pop(k)
+
 		elif k not in serverTimestampMap:
 			filesToDelete.append(k)
 
+		else:
+			print 'deleting key from serverIdMap: ' + k + " " + str(serverIdMap[k])
+			del serverIdMap[k]
+
 	for key in serverIdMap:
+		print 'key still in serveridmap: ' + key
 		filesToUpdate.append(serverIdMap[key])
 
 	result = {'update': filesToUpdate, 'delete': filesToDelete}
