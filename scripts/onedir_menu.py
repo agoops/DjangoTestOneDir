@@ -264,12 +264,8 @@ def deleteFile(filepath):
 
 class MyHandler(FileSystemEventHandler):
 
-	def tempMethod(self):
-		print "Myhandler temp method called"
-
 
 	def on_created(self, event):
-		print 'created watchdog' + event.src_path
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
@@ -279,7 +275,6 @@ class MyHandler(FileSystemEventHandler):
 		sync()
 
 	def on_deleted(self, event):
-		print "watchdog deleted" + event.src_path
 		global deleteThread
 		if "~" in event.src_path:
 			return
@@ -293,7 +288,6 @@ class MyHandler(FileSystemEventHandler):
 		deleteThread.start()
         
 	def on_modified(self, event):
-		print 'modified watchdog' + event.src_path
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
@@ -301,10 +295,8 @@ class MyHandler(FileSystemEventHandler):
 			'hidden file is true'
 			return
 		
-		print 'about to sync'
 		sync()
 	def on_moved(self, event):
-		print 'moved watchdog' + event.src_path
 		global deleteThread
 		if deleteThread.isAlive():
 			deleteThread.join()
@@ -327,12 +319,8 @@ def turnOnWatchdog():
 	global OBSERVER
 	event_handler = MyHandler()
 	OBSERVER = Observer()
-	print 'root path: ' + ROOT
-	print str(OBSERVER)
 	OBSERVER.schedule(event_handler,path=ROOT,recursive=True)
 	OBSERVER.start()
-	print OBSERVER.isAlive()
-	event_handler.tempMethod()
 	
 
 def turnOffWatchdog(observer):

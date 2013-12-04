@@ -25,7 +25,6 @@ def deleteFile(request):
 
 	filename = request.POST['filepath']
 	whatFilenameWouldBe = str(user) + '/' + filename
-	print filename
 	doc = Document.objects.get(user=user, localpath=filename)
 	doc.docfile.delete()
 	doc.delete()
@@ -54,7 +53,6 @@ def checkForUpdates(request):
 
 	filesToDelete=[]
 	filesToUpdate=[]
-	print 'filesToUpdate' +str(filesToUpdate)
 
 
 
@@ -164,7 +162,6 @@ def printAllDocsByUser(user=None):
 	docs = Document.objects.filter(user=user)
 
 def upload(request):
-	print 'upload reached'
 	# Handle file upload
 	if request.method == 'POST':
 
