@@ -86,8 +86,9 @@ def login_prompt():
 def signup_prompt():
 	print "\nPlease enter the following info to create a new account"
 	username = raw_input("Username: ")
-	password = raw_input("Password: ")
-	retype_password = raw_input("Re-type Password: ")
+	password = getpass.getpass()
+	print "Confirm"
+	retype_password = getpass.getpass()
 	first_name = raw_input("First Name: ")
 	last_name = raw_input("Last Name: ")
 	email = raw_input("Email: ")

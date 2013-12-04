@@ -251,6 +251,10 @@ def change_password():
 		main_menu2()
 
 def signOut():
+	global SYNC
+	SYNC = False
+	if backgroundThread.isAlive():
+		backgroundThread.join()
 	loginOrSignup()
 
 def deleteFile(filepath):
