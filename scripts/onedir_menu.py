@@ -199,9 +199,11 @@ def sync():
 def backgroundPoller():
 	global deleteThread
 	while SYNC:
-		while deleteThread.isAlive()
-		time.sleep(4)
+		while deleteThread.isAlive():
+			pass
 		refreshFiles()
+		time.sleep(4)
+		
 
 def folder_recurse(contents, folderpath):
 

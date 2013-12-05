@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 def temp(request):
 	return HttpResponse("Hello from django")
 
+
 def deleteFile(request):
 	username = request.POST['username']
 	password = request.POST['password']
@@ -29,6 +30,8 @@ def deleteFile(request):
 	doc.docfile.delete()
 	doc.delete()
 	return HttpResponse("deleted")
+
+	
 def checkForUpdates(request):
 	username = request.POST['username']
 	password = request.POST['password']
@@ -53,15 +56,6 @@ def checkForUpdates(request):
 
 	filesToDelete=[]
 	filesToUpdate=[]
-
-
-
-
-
-
-
-
-
 
 
 	for k in timestampMap:
