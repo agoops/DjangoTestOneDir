@@ -165,7 +165,8 @@ def toggleSync():
 	else:
 		if backgroundThread.isAlive():
 			backgroundThread.join()
-		turnOffWatchdog(OBSERVER)
+		OBSERVER.stop()
+		OBSERVER.join()
 
 def sync():
 	
@@ -335,6 +336,7 @@ def turnOnWatchdog():
 	
 
 def turnOffWatchdog(observer):
+	global OBSERVER
 	observer.stop()
 	observer.join()
 
